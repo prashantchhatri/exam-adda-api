@@ -28,6 +28,43 @@ type StudentRecord = {
   created_at: Date;
 };
 
+type UserView = {
+  id: string;
+  email: string;
+  role: string;
+  createdAt: Date;
+};
+
+type InstituteView = {
+  id: string;
+  name: string;
+  slug: string | null;
+  description: string | null;
+  logoUrl: string | null;
+  address: string | null;
+  phone: string | null;
+  showInfoOnLogin: boolean;
+  owner: {
+    id: string;
+    email: string;
+  };
+  createdAt: Date;
+};
+
+type StudentView = {
+  id: string;
+  fullName: string;
+  user: {
+    id: string;
+    email: string;
+  };
+  institute: {
+    id: string;
+    name: string;
+  };
+  createdAt: Date;
+};
+
 @Injectable()
 export class DashboardService {
   constructor(private readonly prisma: PrismaService) {}
@@ -52,46 +89,31 @@ export class DashboardService {
     const userMap = new Map<string, UserRecord>(users.map((item) => [item.id, item]));
     const instituteMap = new Map<string, InstituteRecord>(institutes.map((item) => [item.id, item]));
 
+    const userViews = users.map((item) => this.mapUser(item));
+    const instituteViews = institutes.map((item) => this.mapInstitute(item, userMap));
+    const studentViews = students.map((item) => this.mapStudent(item, userMap, instituteMap));
+
+    const stats = {
+      totalUsers: users.length,
+      totalInstitutes: institutes.length,
+      totalStudents: students.length,
+    };
+
     return {
+      // New response contract
+      stats,
+      recentUsers: userViews.slice(0, 10),
+      recentInstitutes: instituteViews.slice(0, 10),
+
+      // Backward compatibility
       counts: {
-        users: users.length,
-        institutes: institutes.length,
-        students: students.length,
+        users: stats.totalUsers,
+        institutes: stats.totalInstitutes,
+        students: stats.totalStudents,
       },
-      users: users.map((item) => ({
-        id: item.id,
-        email: item.email,
-        role: item.role,
-        createdAt: item.created_at,
-      })),
-      institutes: institutes.map((item) => ({
-        id: item.id,
-        name: item.name,
-        slug: item.slug,
-        description: item.description,
-        logoUrl: item.logo_url,
-        address: item.address,
-        phone: item.phone,
-        showInfoOnLogin: !!item.show_info_on_login,
-        owner: {
-          id: item.owner_id,
-          email: userMap.get(item.owner_id)?.email || 'N/A',
-        },
-        createdAt: item.created_at,
-      })),
-      students: students.map((item) => ({
-        id: item.user_id,
-        fullName: item.full_name,
-        user: {
-          id: item.user_id,
-          email: userMap.get(item.user_id)?.email || 'N/A',
-        },
-        institute: {
-          id: item.institute_id,
-          name: instituteMap.get(item.institute_id)?.name || 'N/A',
-        },
-        createdAt: item.created_at,
-      })),
+      users: userViews,
+      institutes: instituteViews,
+      students: studentViews,
     };
   }
 
@@ -190,6 +212,53 @@ export class DashboardService {
         phone: institute.phone,
         showInfoOnLogin: !!institute.show_info_on_login,
       },
+    };
+  }
+
+  private mapUser(user: UserRecord): UserView {
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      createdAt: user.created_at,
+    };
+  }
+
+  private mapInstitute(institute: InstituteRecord, userMap: Map<string, UserRecord>): InstituteView {
+    return {
+      id: institute.id,
+      name: institute.name,
+      slug: institute.slug,
+      description: institute.description,
+      logoUrl: institute.logo_url,
+      address: institute.address,
+      phone: institute.phone,
+      showInfoOnLogin: !!institute.show_info_on_login,
+      owner: {
+        id: institute.owner_id,
+        email: userMap.get(institute.owner_id)?.email || 'N/A',
+      },
+      createdAt: institute.created_at,
+    };
+  }
+
+  private mapStudent(
+    student: StudentRecord,
+    userMap: Map<string, UserRecord>,
+    instituteMap: Map<string, InstituteRecord>,
+  ): StudentView {
+    return {
+      id: student.user_id,
+      fullName: student.full_name,
+      user: {
+        id: student.user_id,
+        email: userMap.get(student.user_id)?.email || 'N/A',
+      },
+      institute: {
+        id: student.institute_id,
+        name: instituteMap.get(student.institute_id)?.name || 'N/A',
+      },
+      createdAt: student.created_at,
     };
   }
 }
