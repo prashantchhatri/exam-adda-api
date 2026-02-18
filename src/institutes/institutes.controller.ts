@@ -8,6 +8,7 @@ import { Role } from '../common/enums/role.enum';
 import { InstitutesService } from './institutes.service';
 import { CreateInstituteDto } from './dto/create-institute.dto';
 import { UpdateInstituteDetailsDto } from './dto/update-institute-details.dto';
+import { ok } from '../common/utils/api-response.util';
 
 @ApiTags('Institutes')
 @Controller('institutes')
@@ -28,18 +29,20 @@ export class InstitutesController {
       ownerId: 'uuid',
     },
   })
-  create(@Body() dto: CreateInstituteDto, @Req() req: Request) {
+  async create(@Body() dto: CreateInstituteDto, @Req() req: Request) {
     const user = req.user as { userId: string; role: Role };
-    return this.institutesService.create(user.userId, user.role, dto);
+    const data = await this.institutesService.create(user.userId, user.role, dto);
+    return ok('Institute created successfully', data);
   }
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt-auth')
   @ApiOperation({ summary: 'Get institute owned by current user' })
-  me(@Req() req: Request) {
+  async me(@Req() req: Request) {
     const user = req.user as { userId: string };
-    return this.institutesService.findMine(user.userId);
+    const data = await this.institutesService.findMine(user.userId);
+    return ok('Institute fetched successfully', data);
   }
 
   @Patch('me/details')
@@ -47,20 +50,23 @@ export class InstitutesController {
   @Roles(Role.INSTITUTE)
   @ApiBearerAuth('jwt-auth')
   @ApiOperation({ summary: 'Add or update institute login details (logo, address, phone)' })
-  updateDetails(@Req() req: Request, @Body() dto: UpdateInstituteDetailsDto) {
+  async updateDetails(@Req() req: Request, @Body() dto: UpdateInstituteDetailsDto) {
     const user = req.user as { userId: string };
-    return this.institutesService.updateMineDetails(user.userId, dto);
+    const data = await this.institutesService.updateMineDetails(user.userId, dto);
+    return ok('Institute details updated successfully', data);
   }
 
   @Get('slug/:slug')
   @ApiOperation({ summary: 'Fetch public institute login details by slug' })
-  bySlug(@Param('slug') slug: string) {
-    return this.institutesService.findPublicBySlug(slug);
+  async bySlug(@Param('slug') slug: string) {
+    const data = await this.institutesService.findPublicBySlug(slug);
+    return ok('Institute login details fetched', data);
   }
 
   @Get()
   @ApiOperation({ summary: 'List public institute options' })
-  listPublic() {
-    return this.institutesService.findAllPublic();
+  async listPublic() {
+    const data = await this.institutesService.findAllPublic();
+    return ok('Institutes fetched successfully', data);
   }
 }

@@ -7,6 +7,7 @@ import { RegisterInstituteDto } from './dto/register-institute.dto';
 import { RegisterStudentDto } from './dto/register-student.dto';
 import { LoginInstituteDto } from './dto/login-institute.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { ok } from '../common/utils/api-response.util';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -22,8 +23,9 @@ export class AuthController {
       user: { id: 'uuid', email: 'student@example.com', role: 'STUDENT' },
     },
   })
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  async register(@Body() dto: RegisterDto) {
+    const data = await this.authService.register(dto);
+    return ok('Registration successful', data);
   }
 
   @Post('register/institute')
@@ -35,8 +37,9 @@ export class AuthController {
       user: { id: 'uuid', email: 'owner@example.com', role: 'INSTITUTE' },
     },
   })
-  registerInstitute(@Body() dto: RegisterInstituteDto) {
-    return this.authService.registerInstitute(dto);
+  async registerInstitute(@Body() dto: RegisterInstituteDto) {
+    const data = await this.authService.registerInstitute(dto);
+    return ok('Institute registration successful', data);
   }
 
   @Post('register/student')
@@ -48,8 +51,9 @@ export class AuthController {
       user: { id: 'uuid', email: 'student@example.com', role: 'STUDENT' },
     },
   })
-  registerStudent(@Body() dto: RegisterStudentDto) {
-    return this.authService.registerStudent(dto);
+  async registerStudent(@Body() dto: RegisterStudentDto) {
+    const data = await this.authService.registerStudent(dto);
+    return ok('Student registration successful', data);
   }
 
   @Post('login')
@@ -61,8 +65,9 @@ export class AuthController {
       user: { id: 'uuid', email: 'pkumarchhatri@gmail.com', role: 'SUPER_ADMIN' },
     },
   })
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(@Body() dto: LoginDto) {
+    const data = await this.authService.login(dto);
+    return ok('Login successful', data);
   }
 
   @Post('login/institute/:slug')
@@ -74,8 +79,9 @@ export class AuthController {
       user: { id: 'uuid', email: 'student@example.com', role: 'STUDENT' },
     },
   })
-  loginForInstitute(@Body() dto: LoginInstituteDto, @Param('slug') slug: string) {
-    return this.authService.loginForInstitute(slug, dto);
+  async loginForInstitute(@Body() dto: LoginInstituteDto, @Param('slug') slug: string) {
+    const data = await this.authService.loginForInstitute(slug, dto);
+    return ok('Institute login successful', data);
   }
 
   @Post('logout')
@@ -87,6 +93,7 @@ export class AuthController {
     example: { message: 'Logged out successfully' },
   })
   logout() {
-    return this.authService.logout();
+    this.authService.logout();
+    return ok('Logged out successfully', null);
   }
 }

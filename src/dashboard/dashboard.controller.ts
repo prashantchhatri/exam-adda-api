@@ -6,6 +6,7 @@ import { Role } from '../common/enums/role.enum';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { DashboardService } from './dashboard.service';
+import { ok } from '../common/utils/api-response.util';
 
 @ApiTags('Dashboard')
 @ApiBearerAuth('jwt-auth')
@@ -17,23 +18,26 @@ export class DashboardController {
   @Get('super-admin')
   @Roles(Role.SUPER_ADMIN)
   @ApiOperation({ summary: 'Super admin records dashboard' })
-  superAdmin() {
-    return this.dashboardService.getSuperAdminData();
+  async superAdmin() {
+    const data = await this.dashboardService.getSuperAdminData();
+    return ok('Super admin dashboard fetched', data);
   }
 
   @Get('institute')
   @Roles(Role.INSTITUTE)
   @ApiOperation({ summary: 'Institute dashboard' })
-  institute(@Req() req: Request) {
+  async institute(@Req() req: Request) {
     const user = req.user as { userId: string };
-    return this.dashboardService.getInstituteData(user.userId);
+    const data = await this.dashboardService.getInstituteData(user.userId);
+    return ok('Institute dashboard fetched', data);
   }
 
   @Get('student')
   @Roles(Role.STUDENT)
   @ApiOperation({ summary: 'Student dashboard' })
-  student(@Req() req: Request) {
+  async student(@Req() req: Request) {
     const user = req.user as { userId: string };
-    return this.dashboardService.getStudentData(user.userId);
+    const data = await this.dashboardService.getStudentData(user.userId);
+    return ok('Student dashboard fetched', data);
   }
 }
