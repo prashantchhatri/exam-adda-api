@@ -141,7 +141,21 @@ export class DashboardService {
     );
     const userMap = new Map<string, UserRecord>(usersResult.rows.map((item) => [item.id, item]));
 
+    const students = studentsResult.rows.map((item) => ({
+      id: item.user_id,
+      fullName: item.full_name,
+      user: {
+        id: item.user_id,
+        email: userMap.get(item.user_id)?.email || 'N/A',
+      },
+    }));
+
     return {
+      stats: {
+        totalStudents: students.length,
+        activeExams: 0,
+      },
+      students,
       institute: {
         id: institute.id,
         name: institute.name,
@@ -151,17 +165,6 @@ export class DashboardService {
         address: institute.address,
         phone: institute.phone,
         showInfoOnLogin: !!institute.show_info_on_login,
-        students: studentsResult.rows.map((item) => ({
-          id: item.user_id,
-          fullName: item.full_name,
-          user: {
-            id: item.user_id,
-            email: userMap.get(item.user_id)?.email || 'N/A',
-          },
-        })),
-      },
-      counts: {
-        students: studentsResult.rows.length,
       },
     };
   }
