@@ -1,2 +1,5 @@
-// Re-export Prisma Role enum to keep a single source of truth.
-export { Role } from '@prisma/client';
+export enum Role {
+  SUPER_ADMIN = 'SUPER_ADMIN',
+  INSTITUTE = 'INSTITUTE',
+  STUDENT = 'STUDENT',
+}
